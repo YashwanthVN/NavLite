@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import MapView from "./components/MapView";
+import SearchBox from "./components/SearchBar";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const [route, setRoute] = useState<[number, number][]>([]);
+  const [marker, setMarker] = useState<[number, number] | null>(null);
+
+  const handleSearch = (lat: number, lon: number, name?: string) => {
+    console.log("Location:", name, lat, lon);
+
+    // Drop marker where user searched
+    setMarker([lat, lon]);
+
+    // Example route (Bangalore → searched location)
+    setRoute([
+      [12.9716, 77.5946],
+      [lat, lon],
+    ]);
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <SearchBox onSearch={handleSearch} />
+      <MapView routeCoords={route} marker={marker} />
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
