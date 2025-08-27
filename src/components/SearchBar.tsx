@@ -1,34 +1,40 @@
 import React, { useState } from "react";
 
-interface SearchBoxProps {
+interface SearchBarProps {
   onSearch: (lat: number, lon: number, name?: string) => void;
 }
 
-const SearchBox: React.FC<SearchBoxProps> = ({ onSearch }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [query, setQuery] = useState("");
 
-  const handleSearch = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // prevent page reload
     if (!query.trim()) return;
 
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}`
       );
       const data = await res.json();
 
-      if (data.length > 0) {
+      if (data && data.length > 0) {
         const { lat, lon, display_name } = data[0];
         onSearch(parseFloat(lat), parseFloat(lon), display_name);
+        setQuery("");
       } else {
         alert("No results found");
       }
     } catch (err) {
       console.error("Error fetching from Nominatim:", err);
+      alert("Error fetching location");
     }
   };
 
   return (
-    <div
+    <form
+      onSubmit={handleSubmit}
       style={{
         padding: "8px",
         background: "#fff",
@@ -49,13 +55,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({ onSearch }) => {
         style={{ padding: "6px", minWidth: "250px" }}
       />
       <button
-        onClick={handleSearch}
+        type="submit" 
         style={{ marginLeft: "6px", padding: "6px 12px" }}
       >
         Search
       </button>
-    </div>
+    </form>
   );
 };
 
-export default SearchBox;
+export default SearchBar;
