@@ -1,27 +1,26 @@
 import React, { useState } from "react";
 import MapView from "./components/MapView";
+import SearchBar from "./components/SearchBar";
 
 const App: React.FC = () => {
-  const [route, setRoute] = useState<[number, number][]>([]);
-  const [marker, setMarker] = useState<[number, number] | null>(null);
-
-  const handleSelect = (
-    lat: number,
-    lon: number,
-    name: string,
-    bbox?: [number, number, number, number]
-  ) => {
-    console.log("Selected location:", name, lat, lon, bbox);
-
-    setMarker([lat, lon]);
-    setRoute([
-      [12.9716, 77.5946], // Bangalore
-      [lat, lon],
-    ]);
-  };
+  const [from, setFrom] = useState<{ lat: number; lon: number; name: string } | null>(null);
+  const [to, setTo] = useState<{ lat: number; lon: number; name: string } | null>(null);
 
   return (
-    <MapView routeCoords={route} marker={marker} onSelect={handleSelect} />
+    <>
+      {/* Single SearchBar handles both */}
+      <SearchBar
+        onFromSelect={(lat: number, lon: number, name: string) =>
+          setFrom({ lat, lon, name })
+        }
+        onToSelect={(lat: number, lon: number, name: string) =>
+          setTo({ lat, lon, name })
+        }
+      />
+
+      {/* Map takes both */}
+      <MapView from={from} to={to} />
+    </>
   );
 };
 
