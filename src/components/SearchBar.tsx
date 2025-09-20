@@ -33,6 +33,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
   // Fetch suggestions when typing
   useEffect(() => {
     const query = activeField === "from" ? fromQuery : toQuery;
+
+    // If query is empty or too short → clear suggestions
     if (!query || query.length < 3) {
       setSuggestions([]);
       return;
@@ -40,6 +42,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
 
     if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
 
+    // Debounce API calls
     timeoutRef.current = window.setTimeout(async () => {
       setLoading(true);
       try {
@@ -62,36 +65,54 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
     };
   }, [fromQuery, toQuery, activeField]);
 
-  // Handle selecting suggestion
-  const handleSelect = (s: Suggestion) => {
-  let bbox: [number, number, number, number] | undefined;
+  // Handle selecting suggestion or "My location"
+  const handleSelect = (s: Suggestion | "mylocation") => {
+    let bbox: [number, number, number, number] | undefined;
 
-  if (s.boundingbox && s.boundingbox.length === 4) {
-    bbox = [
-      parseFloat(s.boundingbox[0]),
-      parseFloat(s.boundingbox[1]),
-      parseFloat(s.boundingbox[2]),
-      parseFloat(s.boundingbox[3]),
-    ] as [number, number, number, number];
-  }
+    if (s !== "mylocation" && s.boundingbox && s.boundingbox.length === 4) {
+      bbox = [
+        parseFloat(s.boundingbox[0]),
+        parseFloat(s.boundingbox[1]),
+        parseFloat(s.boundingbox[2]),
+        parseFloat(s.boundingbox[3]),
+      ] as [number, number, number, number];
+    }
 
-  if (activeField === "from") {
-    setFromQuery(s.display_name);
-    onFromSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
-  } else if (activeField === "to") {
-    setToQuery(s.display_name);
-    onToSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
-  }
+    // Handle FROM field
+    if (activeField === "from") {
+      if (s === "mylocation") {
+        // Use browser geolocation
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((pos) => {
+            const { latitude, longitude } = pos.coords;
+            setFromQuery("📍 Your location"); // Update input text
+            onFromSelect(latitude, longitude, "Your location");
+          });
+        }
+      } else {
+        // Normal suggestion
+        setFromQuery(s.display_name);
+        onFromSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
+      }
+    }
 
-  setSuggestions([]);
-  setActiveField(null);
+    // Handle TO field (only normal suggestions, no "mylocation")
+    else if (activeField === "to" && s !== "mylocation") {
+      setToQuery(s.display_name);
+      onToSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
+    }
 
-  if (activeField === "from") {
-    document.querySelector<HTMLInputElement>("input[placeholder='From']")?.blur();
-  } else if (activeField === "to") {
-    document.querySelector<HTMLInputElement>("input[placeholder='To']")?.blur();
-  }
-};
+    // Close dropdown
+    setSuggestions([]);
+    setActiveField(null);
+
+    // Blur input to close keyboard focus
+    if (activeField === "from") {
+      document.querySelector<HTMLInputElement>("input[placeholder='From']")?.blur();
+    } else if (activeField === "to") {
+      document.querySelector<HTMLInputElement>("input[placeholder='To']")?.blur();
+    }
+  };
 
   return (
     <div
@@ -102,7 +123,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
         transform: "translateX(-50%)",
         zIndex: 1000,
         width: "400px",
-        background: "#fff",
+        background: "#ffffff8c",
         borderRadius: "12px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
         padding: "8px",
@@ -122,7 +143,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
           boxSizing: "border-box",
           padding: "10px 14px",
           borderRadius: "8px",
-          border: "1px solid #ddd",
+          border: "1px solid #ddddddff",
           fontSize: "14px",
           marginBottom: "8px",
           outline: "none",
@@ -154,7 +175,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
         <div style={{ padding: "10px", fontSize: "14px" }}>⏳ Searching...</div>
       )}
 
-      {suggestions.length > 0 && (
+      {(suggestions.length > 0 || activeField === "from") && (
         <ul
           style={{
             listStyle: "none",
@@ -167,6 +188,29 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
             overflowY: "auto",
           }}
         >
+          {/* Always show "Your location" option for FROM field */}
+          {activeField === "from" && (
+            <li
+              onClick={() => handleSelect("mylocation")}
+              style={{
+                padding: "10px 14px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "bold",
+                color: "#1a73e8"
+              }}
+              onMouseEnter={(e) =>
+                ((e.target as HTMLElement).style.background = "#f1f3f48b")
+              }
+              onMouseLeave={(e) =>
+                ((e.target as HTMLElement).style.background = "transparent")
+              }
+            >
+              📍 Use my current location
+            </li>
+          )}
+
+          {/* Normal suggestions */}
           {suggestions.map((s, idx) => (
             <li
               key={idx}
