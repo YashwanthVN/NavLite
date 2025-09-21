@@ -132,7 +132,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 1000,
-        width: "400px", // outer container stays fixed
+        width: "420px", // outer container stays fixed
         background: "#ffffff8c",
         borderRadius: "12px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
@@ -149,7 +149,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
           setActiveField("from");
         }}
         style={{
-          width: "87.5%",
+          width: "88.25%",
           boxSizing: "border-box",
           padding: "10px 14px",
           borderRadius: "8px",

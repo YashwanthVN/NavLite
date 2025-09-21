@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import fromMarkerIcon from "../assets/from_marker.png"; // Blue marker PNG
+import toMarkerIcon from "../assets/to_marker.png";     // Red marker PNG
 
 interface MapViewProps {
   from: { lat: number; lon: number; name: string } | null;
@@ -58,14 +60,33 @@ const MapView: React.FC<MapViewProps> = ({ from, to }) => {
       routeRef.current = null;
     }
 
+    // Custom icons for FROM and TO markers
+    const fromIcon = L.icon({
+      iconUrl: fromMarkerIcon,
+      iconSize: [36, 36], // size of the icon
+      iconAnchor: [18, 36], // point of the icon which will correspond to marker's location
+      popupAnchor: [0, -36], // where popup opens relative to iconAnchor
+    });
+
+    const toIcon = L.icon({
+      iconUrl: toMarkerIcon,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -36],
+    });
+
     // Add "from" marker
     if (from) {
-      L.marker([from.lat, from.lon]).addTo(mapRef.current).bindPopup(`From: ${from.name}`);
+      L.marker([from.lat, from.lon], { icon: fromIcon })
+        .addTo(mapRef.current)
+        .bindPopup(`From: ${from.name}`);
     }
 
     // Add "to" marker
     if (to) {
-      L.marker([to.lat, to.lon]).addTo(mapRef.current).bindPopup(`To: ${to.name}`);
+      L.marker([to.lat, to.lon], { icon: toIcon })
+        .addTo(mapRef.current)
+        .bindPopup(`To: ${to.name}`);
     }
 
     // If both available → fetch route
