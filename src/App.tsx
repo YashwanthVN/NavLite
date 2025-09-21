@@ -8,7 +8,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      {/* Single SearchBar handles both */}
+      {/* Single SearchBar handles FROM and TO + swap internally */}
       <SearchBar
         onFromSelect={(lat: number, lon: number, name: string) =>
           setFrom({ lat, lon, name })
@@ -18,7 +18,7 @@ const App: React.FC = () => {
         }
       />
 
-      {/* Map takes both */}
+      {/* Map takes both FROM and TO */}
       <MapView from={from} to={to} />
     </>
   );

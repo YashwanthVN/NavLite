@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import swapIcon from "../assets/swap.png"; // Import your custom swap icon 
 
 interface SearchBarProps {
   onFromSelect: (
@@ -34,7 +35,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
   useEffect(() => {
     const query = activeField === "from" ? fromQuery : toQuery;
 
-    // If query is empty or too short → clear suggestions
     if (!query || query.length < 3) {
       setSuggestions([]);
       return;
@@ -78,40 +78,50 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
       ] as [number, number, number, number];
     }
 
-    // Handle FROM field
     if (activeField === "from") {
       if (s === "mylocation") {
-        // Use browser geolocation
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition((pos) => {
             const { latitude, longitude } = pos.coords;
-            setFromQuery("📍 Your location"); // Update input text
+            setFromQuery("📍 Current location");
             onFromSelect(latitude, longitude, "Your location");
           });
         }
       } else {
-        // Normal suggestion
         setFromQuery(s.display_name);
         onFromSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
       }
+    } else if (activeField === "to") {
+      if (s === "mylocation") {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((pos) => {
+            const { latitude, longitude } = pos.coords;
+            setToQuery("📍 Current location");
+            onToSelect(latitude, longitude, "Your location");
+          });
+        }
+      } else {
+        setToQuery(s.display_name);
+        onToSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
+      }
     }
 
-    // Handle TO field (only normal suggestions, no "mylocation")
-    else if (activeField === "to" && s !== "mylocation") {
-      setToQuery(s.display_name);
-      onToSelect(parseFloat(s.lat), parseFloat(s.lon), s.display_name, bbox);
-    }
-
-    // Close dropdown
     setSuggestions([]);
     setActiveField(null);
 
-    // Blur input to close keyboard focus
     if (activeField === "from") {
       document.querySelector<HTMLInputElement>("input[placeholder='From']")?.blur();
     } else if (activeField === "to") {
       document.querySelector<HTMLInputElement>("input[placeholder='To']")?.blur();
     }
+  };
+
+  // Swap button handler
+  const handleSwap = () => {
+    const newFrom = toQuery;
+    const newTo = fromQuery;
+    setFromQuery(newFrom);
+    setToQuery(newTo);
   };
 
   return (
@@ -122,7 +132,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 1000,
-        width: "400px",
+        width: "400px", // outer container stays fixed
         background: "#ffffff8c",
         borderRadius: "12px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
@@ -139,7 +149,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
           setActiveField("from");
         }}
         style={{
-          width: "100%",
+          width: "87.5%",
           boxSizing: "border-box",
           padding: "10px 14px",
           borderRadius: "8px",
@@ -150,32 +160,54 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
         }}
       />
 
-      {/* To input */}
-      <input
-        type="text"
-        placeholder="To"
-        value={toQuery}
-        onChange={(e) => {
-          setToQuery(e.target.value);
-          setActiveField("to");
-        }}
-        style={{
-          width: "100%",
-          boxSizing: "border-box", 
-          padding: "10px 14px",
-          borderRadius: "8px",
-          border: "1px solid #ddd",
-          fontSize: "14px",
-          outline: "none",
-        }}
-      />
+      {/* To input with swap button beside it */}
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="To"
+          value={toQuery}
+          onChange={(e) => {
+            setToQuery(e.target.value);
+            setActiveField("to");
+          }}
+          style={{
+            flex: 1,
+            boxSizing: "border-box",
+            padding: "10px 14px",
+            borderRadius: "8px", // rounded left side
+            border: "1px solid #ddd",
+            fontSize: "14px",
+            outline: "none",
+            height: "40px",
+          }}
+        />
+        <button
+          onClick={handleSwap}
+          style={{
+            background: "#fff",
+            border: "1px solid #ddd",
+            borderLeft: "none",
+            borderRadius: "0 8px 8px 0",
+            cursor: "pointer",
+            padding: "6px 10px",
+            height: "40px",
+            marginLeft: "6px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          title="Swap locations"
+        >
+          <img src={swapIcon} alt="Swap" style={{ width: "22px", height: "22px" }} />
+        </button>
+      </div>
 
       {/* Suggestions dropdown */}
       {loading && (
         <div style={{ padding: "10px", fontSize: "14px" }}>⏳ Searching...</div>
       )}
 
-      {(suggestions.length > 0 || activeField === "from") && (
+      {(suggestions.length > 0 || activeField) && (
         <ul
           style={{
             listStyle: "none",
@@ -186,10 +218,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
             borderRadius: "8px",
             maxHeight: "200px",
             overflowY: "auto",
+            color: "#120000",
           }}
         >
-          {/* Always show "Your location" option for FROM field */}
-          {activeField === "from" && (
+          {/* Always show "Your location" option */}
+          {activeField && (
             <li
               onClick={() => handleSelect("mylocation")}
               style={{
@@ -197,7 +230,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onFromSelect, onToSelect }) => {
                 cursor: "pointer",
                 fontSize: "14px",
                 fontWeight: "bold",
-                color: "#1a73e8"
+                color: "#1a73e8",
               }}
               onMouseEnter={(e) =>
                 ((e.target as HTMLElement).style.background = "#f1f3f48b")
