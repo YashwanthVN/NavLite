@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import swapIcon from "../assets/swap.png"; // Import your custom swap icon 
+import swapIcon from "../assets/swap.png";
 
 interface SearchBarProps {
   onFromSelect: (

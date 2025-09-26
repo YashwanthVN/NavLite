@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import fromMarkerIcon from "../assets/from_marker.png"; // Blue marker PNG
-import toMarkerIcon from "../assets/to_marker.png";     // Red marker PNG
+import fromMarkerIcon from "../assets/from_marker.png";
+import toMarkerIcon from "../assets/to_marker.png";
 
 interface MapViewProps {
   from: { lat: number; lon: number; name: string } | null;
@@ -63,9 +63,9 @@ const MapView: React.FC<MapViewProps> = ({ from, to }) => {
     // Custom icons for FROM and TO markers
     const fromIcon = L.icon({
       iconUrl: fromMarkerIcon,
-      iconSize: [36, 36], // size of the icon
-      iconAnchor: [18, 36], // point of the icon which will correspond to marker's location
-      popupAnchor: [0, -36], // where popup opens relative to iconAnchor
+      iconSize: [36, 36], 
+      iconAnchor: [18, 36], 
+      popupAnchor: [0, -36],
     });
 
     const toIcon = L.icon({
